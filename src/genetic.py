@@ -26,12 +26,14 @@ class MaxPoolType:
     Max = 1
 
 class CnnDna:
-    def __init__(self, imageChannels, imageRes, outputs, cnns : List[CnnGene], lnns):
+    def __init__(self, learningRate, imageChannels, imageRes, outputs, cnns : List[CnnGene], lnns):
+        self.learningRate = learningRate
         self.imageChannels = imageChannels
         self.imageRes = imageRes
         self.outputs = outputs
         self.cnns = cnns
         self.lnns = lnns
+        self.fitness = -1
 
     def mutate(self):
 

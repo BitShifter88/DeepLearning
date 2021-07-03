@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 t = Trainer()
 
-dna = CnnDna(3, 32, 10, [
+dna = CnnDna(0.001, 3, 32, 10, [
     CnnGene(64, ActivationFuncType.ReLU, MaxPoolType.MaxPool),
     CnnGene(128, ActivationFuncType.ReLU, MaxPoolType.NoMaxPool),
     CnnGene(128, ActivationFuncType.ReLU, MaxPoolType.MaxPool),

@@ -35,7 +35,7 @@ class Trainer:
         batch_size=128
 
         train_dl = DataLoader(train_ds, batch_size, shuffle=True, num_workers=4, pin_memory=True)
-        val_dl = DataLoader(val_ds, batch_size*2, num_workers=4, pin_memory=True)
+        val_dl = DataLoader(val_ds, batch_size*2, num_workers=6, pin_memory=True)
 
         default_device = get_default_device()
         print(default_device)
