@@ -10,6 +10,8 @@ __pycache__/
 .Python
 cifar10.tgz
 data/
+generated/
+simpsons-faces/
 build/
 develop-eggs/
 dist/

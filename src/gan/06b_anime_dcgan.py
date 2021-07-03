@@ -1,114 +1,19 @@
 
-"""# Training Generative Adversarial Networks (GANs) in PyTorch
-
-### Part 7 of "Deep Learning with Pytorch: Zero to GANs"
-
-This tutorial series is a hands-on beginner-friendly introduction to deep learning using [PyTorch](https://pytorch.org), an open-source neural networks library. These tutorials take a practical and coding-focused approach. The best way to learn the material is to execute the code and experiment with it yourself. Check out the full series here:
-
-1. [PyTorch Basics: Tensors & Gradients](https://jovian.ai/aakashns/01-pytorch-basics)
-2. [Gradient Descent & Linear Regression](https://jovian.ai/aakashns/02-linear-regression)
-3. [Working with Images & Logistic Regression](https://jovian.ai/aakashns/03-logistic-regression) 
-4. [Training Deep Neural Networks on a GPU](https://jovian.ai/aakashns/04-feedforward-nn)
-5. [Image Classification using Convolutional Neural Networks](https://jovian.ai/aakashns/05-cifar10-cnn)
-6. [Data Augmentation, Regularization and ResNets](https://jovian.ai/aakashns/05b-cifar10-resnet)
-7. [Generating Images using Generative Adversarial Networks](https://jovian.ai/aakashns/06b-anime-dcgan/)
-
-### How to run the code
-
-This tutorial is an executable [Jupyter notebook](https://jupyter.org) hosted on [Jovian](https://www.jovian.ai). You can _run_ this tutorial and experiment with the code examples in a couple of ways: *using free online resources* (recommended) or *on your computer*.
-
-#### Option 1: Running using free online resources (1-click, recommended)
-
-The easiest way to start executing the code is to click the **Run** button at the top of this page and select **Run on Colab**. [Google Colab](https://colab.research.google.com) is a free online platform for running Jupyter notebooks using Google's cloud infrastructure. You can also select "Run on Binder" or "Run on Kaggle" if you face issues running the notebook on Google Colab. 
-
-
-#### Option 2: Running on your computer locally
-
-To run the code on your computer locally, you'll need to set up [Python](https://www.python.org), download the notebook and install the required libraries. We recommend using the [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) distribution of Python. Click the **Run** button at the top of this page, select the **Run Locally** option, and follow the instructions.
-
-### Using a GPU for faster training
-
-You can use a [Graphics Processing Unit](https://en.wikipedia.org/wiki/Graphics_processing_unit) (GPU) to train your models faster if your execution platform is connected to a GPU manufactured by NVIDIA. Follow these instructions to use a GPU on the platform of your choice:
-
-* _Google Colab_: Use the menu option "Runtime > Change Runtime Type" and select "GPU" from the "Hardware Accelerator" dropdown.
-* _Kaggle_: In the "Settings" section of the sidebar, select "GPU" from the "Accelerator" dropdown. Use the button on the top-right to open the sidebar.
-* _Binder_: Notebooks running on Binder cannot use a GPU, as the machines powering Binder aren't connected to any GPUs.
-* _Linux_: If your laptop/desktop has an NVIDIA GPU (graphics card), make sure you have installed the [NVIDIA CUDA drivers](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
-* _Windows_: If your laptop/desktop has an NVIDIA GPU (graphics card), make sure you have installed the [NVIDIA CUDA drivers](https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html).
-* _macOS_: macOS is not compatible with NVIDIA GPUs
-
-
-If you do not have access to a GPU or aren't sure what it is, don't worry, you can execute all the code in this tutorial just fine without a GPU.
-
-# Introduction to Generative Modeling
-
-Deep neural networks are used mainly for supervised learning: classification or regression. Generative Adversarial Networks or GANs, however, use neural networks for a very different purpose: Generative modeling
-
-> Generative modeling is an unsupervised learning task in machine learning that involves automatically discovering and learning the regularities or patterns in input data in such a way that the model can be used to generate or output new examples that plausibly could have been drawn from the original dataset. - [Source](https://machinelearningmastery.com/what-are-generative-adversarial-networks-gans/)
-
-To get a sense of the power of generative models, just visit [thispersondoesnotexist.com](https://thispersondoesnotexist.com). Every time you reload the page, a new image of a person's face is generated on the fly. The results are pretty fascinating:
-
-<img src="https://imgix.bustle.com/inverse/4b/17/8f/0e/cf91/4506/99c7/e6a491c5d4ac/these-people-are-not-real--they-were-produced-by-our-generator-that-allows-control-over-different-a.png" style="width:480px; margin-bottom:32px"/>
-
-While there are many approaches used for generative modeling, a Generative Adversarial Network takes the following approach: 
-
-<img src="https://i.imgur.com/6NMdO9u.png" style="width:420px; margin-bottom:32px"/>
-
-There are two neural networks: a *Generator* and a *Discriminator*. The generator generates a "fake" sample given a random vector/matrix, and the discriminator attempts to detect whether a given sample is "real" (picked from the training data) or "fake" (generated by the generator). Training happens in tandem: we train the discriminator for a few epochs, then train the generator for a few epochs, and repeat. This way both the generator and the discriminator get better at doing their jobs. 
-
-GANs however, can be notoriously difficult to train, and are extremely sensitive to hyperparameters, activation functions and regularization. In this tutorial, we'll train a GAN to generate images of anime characters' faces.
-
-<img src="https://i.imgur.com/NaKtJs0.png" width="360" style="margin-bottom:32px"/>
-
-
-We'll use the [Anime Face Dataset](https://github.com/Mckinsey666/Anime-Face-Dataset), which consists of over 63,000 cropped anime faces. Note that generative modeling is an unsupervised learning task, so the images do not have any labels. Most of the code in this tutorial is based [on this notebook](https://www.kaggle.com/splcher/starter-anime-face-dataset).
-"""
-
 project_name = '06b-anime-dcgan'
-
-# Uncomment and run the appropriate command for your operating system, if required
-# No installation is reqiured on Google Colab / Kaggle notebooks
-
-# Linux / Binder / Windows (No GPU)
-# !pip install numpy matplotlib torch==1.7.0+cpu torchvision==0.8.1+cpu torchaudio==0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
-
-# Linux / Windows (GPU)
-# pip install numpy matplotlib torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
- 
-# MacOS (NO GPU)
-# !pip install numpy matplotlib torch torchvision torchaudio
-
-"""## Downloading and Exploring the Data
-
-We can use the [`opendatasets`](https://github.com/JovianML/opendatasets) library to download the [dataset](https://www.kaggle.com/splcher/animefacedataset) from Kaggle. `opendatasets` uses the [Kaggle Official API](https://github.com/Kaggle/kaggle-api) for downloading datasets from Kaggle.  Follow these steps to find your API credentials:
-
-1. Sign in to  [https://kaggle.com/](https://kaggle.com),  then click on your profile picture on the top right and select "My Account" from the menu.
-
-2. Scroll down to the "API" section and click "Create New API Token". This will download a file `kaggle.json` with the following contents:
-
-```
-{"username":"YOUR_KAGGLE_USERNAME","key":"YOUR_KAGGLE_KEY"}
-```
-
-3. When you run `opendatsets.download`, you will be asked to enter your username & Kaggle API, which you can get from the file downloaded in step 2.
-
-Note that you need to download the `kaggle.json` file only once. On Google Colab, you can also upload the `kaggle.json` file using the files tab, and the credentials will be read automatically.
-
-"""
 
 import opendatasets as od
 
-dataset_url = 'https://www.kaggle.com/splcher/animefacedataset'
-#od.download(dataset_url)
+dataset_url = 'https://www.kaggle.com/kostastokis/simpsons-faces'
+od.download(dataset_url)
 
 """The dataset has a single folder called `images` which contains all 63,000+ images in JPG format."""
 
 import os
 
-DATA_DIR = './animefacedataset'
+DATA_DIR = './simpsons-faces'
 print(os.listdir(DATA_DIR))
 
-print(os.listdir(DATA_DIR+'/images')[:10])
+#print(os.listdir(DATA_DIR)[:10])
 
 """Let's load this dataset using the `ImageFolder` class from `torchvision`. We will also resize and crop the images to 64x64 px, and normalize the pixel values with a mean & standard deviation of 0.5 for each channel. This will ensure that pixel values are in the range `(-1, 1)`, which is more  convenient for training the discriminator. We will also create a data loader to load the data in batches."""
 
@@ -116,7 +21,7 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 import torchvision.transforms as T
 
-image_size = 64
+image_size = 200
 batch_size = 128
 stats = (0.5, 0.5, 0.5), (0.5, 0.5, 0.5)
 
@@ -126,7 +31,7 @@ train_ds = ImageFolder(DATA_DIR, transform=T.Compose([
     T.ToTensor(),
     T.Normalize(*stats)]))
 
-train_dl = DataLoader(train_ds, batch_size, shuffle=True, num_workers=3, pin_memory=True)
+train_dl = DataLoader(train_ds, batch_size, shuffle=True, num_workers=0, pin_memory=True)
 
 """Let's create helper functions to denormalize the image tensors and display some sample images from a training batch."""
 
@@ -136,15 +41,17 @@ from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 # %matplotlib inline
 
+print(torch.cuda.get_device_name(0))
+
 def denorm(img_tensors):
     return img_tensors * stats[1][0] + stats[0][0]
 
-def show_images(images, nmax=64):
+def show_images(images, nmax=9):
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.set_xticks([]); ax.set_yticks([])
     ax.imshow(make_grid(denorm(images.detach()[:nmax]), nrow=8).permute(1, 2, 0))
 
-def show_batch(dl, nmax=64):
+def show_batch(dl, nmax=9):
     for images, _ in dl:
         show_images(images, nmax)
         break
@@ -252,32 +159,32 @@ The input to the generator is typically a vector or a matrix of random numbers (
 ![](https://i.imgur.com/DRvK546.gif)
 """
 
-latent_size = 128
+latent_size = 512
 
 generator = nn.Sequential(
     # in: latent_size x 1 x 1
 
-    nn.ConvTranspose2d(latent_size, 512, kernel_size=4, stride=1, padding=0, bias=False),
-    nn.BatchNorm2d(512),
+    nn.ConvTranspose2d(latent_size, 1600, kernel_size=4, stride=1, padding=0, bias=False),
+    nn.BatchNorm2d(1600),
     nn.ReLU(True),
     # out: 512 x 4 x 4
 
-    nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1, bias=False),
-    nn.BatchNorm2d(256),
+    nn.ConvTranspose2d(1600, 800, kernel_size=4, stride=2, padding=1, bias=False),
+    nn.BatchNorm2d(800),
     nn.ReLU(True),
     # out: 256 x 8 x 8
 
-    nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1, bias=False),
-    nn.BatchNorm2d(128),
+    nn.ConvTranspose2d(800, 400, kernel_size=4, stride=2, padding=1, bias=False),
+    nn.BatchNorm2d(400),
     nn.ReLU(True),
     # out: 128 x 16 x 16
 
-    nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, bias=False),
-    nn.BatchNorm2d(64),
+    nn.ConvTranspose2d(400, 200, kernel_size=4, stride=2, padding=1, bias=False),
+    nn.BatchNorm2d(200),
     nn.ReLU(True),
     # out: 64 x 32 x 32
 
-    nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2, padding=1, bias=False),
+    nn.ConvTranspose2d(200, 3, kernel_size=4, stride=2, padding=1, bias=False),
     nn.Tanh()
     # out: 3 x 64 x 64
 )
@@ -316,6 +223,7 @@ def train_discriminator(real_images, opt_d):
     opt_d.zero_grad()
 
     # Pass real images through discriminator
+    print(real_images.shape)
     real_preds = discriminator(real_images)
     real_targets = torch.ones(real_images.size(0), 1, device=device)
     real_loss = F.binary_cross_entropy(real_preds, real_targets)
@@ -371,6 +279,7 @@ def train_generator(opt_g):
     fake_images = generator(latent)
     
     # Try to fool the discriminator
+    print(fake_images.shape)
     preds = discriminator(fake_images)
     targets = torch.ones(batch_size, 1, device=device)
     loss = F.binary_cross_entropy(preds, targets)
@@ -400,7 +309,7 @@ def save_samples(index, latent_tensors, show=True):
 
 """We'll use a fixed set of input vectors to the generator to see how the individual generated images evolve over time as we train the model. Let's save one set of images before we start training our model."""
 
-fixed_latent = torch.randn(64, latent_size, 1, 1, device=device)
+fixed_latent = torch.randn(8, latent_size, 1, 1, device=device)
 
 save_samples(0, fixed_latent)
 
