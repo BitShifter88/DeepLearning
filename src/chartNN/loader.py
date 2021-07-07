@@ -34,7 +34,8 @@ class ChartLoader(Dataset):
         for filename in os.listdir(self.dir):
             with open(os.path.join(self.dir, filename)) as f:
                 jsonData = json.load(f)
-                self.data.append(jsonData)
+                for item in jsonData:
+                    self.data.append(item)
                 # counter += 1
                 # if (counter == 100):
                 #     break

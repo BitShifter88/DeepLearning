@@ -153,7 +153,7 @@ namespace ChartSplicer
             normalized.Remove(normalized.Last());
             Prices = normalized;
 
-            if (Prediction > 1)
+            if (Prediction > 2)
             {
 
             }

@@ -23,15 +23,9 @@ print(torch.seed())
 # Use a white background for matplotlib figures
 matplotlib.rcParams['figure.facecolor'] = '#ffffff'
 
-dataset = MNIST(root='data/', download=True, transform=ToTensor())
 
-image, label = dataset[0]
 
 val_size = 10000
-train_size = len(dataset) - val_size
-
-train_ds, val_ds = random_split(dataset, [train_size, val_size])
-len(train_ds), len(val_ds)
 
 batch_size=128
 
@@ -39,46 +33,45 @@ testLoader = DataLoader(chartTest, batch_size, shuffle=True, num_workers=0, pin_
 trainingLoader = DataLoader(chartTraining, batch_size, shuffle=True, num_workers=0, pin_memory=True)
 validationLoader =DataLoader(chartValidation, batch_size, shuffle=True, num_workers=0, pin_memory=True)
 
-train_loader = DataLoader(train_ds, batch_size, shuffle=True, num_workers=0, pin_memory=True)
-val_loader = DataLoader(val_ds, batch_size*2, num_workers=0, pin_memory=True)
 
 class MnistModel(nn.Module):
     """Feedfoward neural network with 1 hidden layer"""
     def __init__(self, in_size, hidden_size, out_size):
         super().__init__()
         # hidden layer
-        self.linear1 = nn.Linear(in_size, 64)
+        l_size = 128
+        self.linear1 = nn.Linear(in_size, l_size)
         self.linear2 = nn.Sequential(
-            nn.Linear(64, 64),
+            nn.Linear(l_size, l_size),
             nn.ReLU6(),
-            nn.Linear(64,64),
+            nn.Linear(l_size,l_size),
             nn.ReLU6()
             )
 
         self.linear3 = nn.Sequential(
-            nn.Linear(64, 64),
+            nn.Linear(l_size, l_size),
             nn.ReLU6(),
-            nn.Linear(64,64),
+            nn.Linear(l_size,l_size),
             nn.ReLU6()
             )
 
         self.linear5 = nn.Sequential(
-            nn.Linear(64, 64),
+            nn.Linear(l_size, l_size),
             nn.ReLU6(),
-            nn.Linear(64,64),
+            nn.Linear(l_size,l_size),
             nn.ReLU6()
             )
 
         self.linear6 = nn.Sequential(
-            nn.Linear(64, 64),
+            nn.Linear(l_size, l_size),
             nn.ReLU6(),
-            nn.Linear(64,64),
+            nn.Linear(l_size,l_size),
             nn.ReLU6()
             )
 
         # output layer
         self.linear4 = nn.Sequential(
-            nn.Linear(64, out_size)
+            nn.Linear(l_size, out_size)
             )
         
     def forward(self, xb):
@@ -145,7 +138,7 @@ def accuracy(outputs, labels):
 
 """We'll create a model that contains a hidden layer with 32 activations."""
 
-input_size = 432
+input_size = 2016
 hidden_size = 32 # you can change this
 num_classes = 1
 
@@ -189,11 +182,6 @@ def to_device(data, device):
         return [to_device(x, device) for x in data]
     return data.to(device, non_blocking=True)
 
-for images, labels in train_loader:
-    print(images.shape)
-    images = to_device(images, device)
-    print(images.device)
-    break
 
 """Finally, we define a `DeviceDataLoader` class to wrap our existing data loaders and move batches of data to the selected device. Interestingly, we don't need to extend an existing class to create a PyTorch datal oader. All we need is an `__iter__` method to retrieve batches of data and an `__len__` method to get the number of batches."""
 
@@ -228,15 +216,8 @@ testLoader = DeviceDataLoader(testLoader, device)
 trainingLoader = DeviceDataLoader(trainingLoader, device)
 validationLoader = DeviceDataLoader(validationLoader, device)
 
-train_loader = DeviceDataLoader(train_loader, device)
-val_loader = DeviceDataLoader(val_loader, device)
-
 """Tensors moved to the GPU have a `device` property which includes that word `cuda`. Let's verify this by looking at a batch of data from `valid_dl`."""
 
-for xb, yb in val_loader:
-    print('xb.device:', xb.device)
-    print('yb:', yb)
-    break
 
 """## Training the Model
 
@@ -271,6 +252,9 @@ def fit(epochs, lr, model, train_loader, val_loader, opt_func=torch.optim.Adam):
 model = MnistModel(input_size, hidden_size=hidden_size, out_size=num_classes)
 to_device(model, device)
 
+result = evaluate(model, testLoader)
+print(result)
+
 """Let's see how the model performs on the validation set with the initial set of weights and biases."""
 
 history = [evaluate(model, validationLoader)]
@@ -281,9 +265,9 @@ history
 Let's train the model for five epochs and look at the results. We can use a relatively high learning rate of 0.5.
 """
 
-history += fit(15, 0.00001, model, trainingLoader, validationLoader)
+history += fit(15, 0.000001, model, trainingLoader, validationLoader)
 history += fit(5, 0.000001, model, trainingLoader, validationLoader)
-history += fit(5, 0.0000001, model, trainingLoader, validationLoader)
+history += fit(10, 0.0000001, model, trainingLoader, validationLoader)
 
 
 #history += fit(5, 0.01, model, trainingLoader, validationLoader)

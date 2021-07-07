@@ -9,7 +9,7 @@ namespace ChartSplicer
         {
 
             Spliter spliter = new Spliter();
-            spliter.SplitFile(".krakenUSD.csv", 10, 60*24*3, 3);
+            spliter.SplitFile(".krakenUSD.csv", 10, 60*24*14,24 * 60 * 1);
         }
     }
 }

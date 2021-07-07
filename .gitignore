@@ -131,3 +131,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/src/chartSplicer/ChartSplicer/ChartSplicer/bin/Debug/netcoreapp3.1/.krakenUSD.csv
