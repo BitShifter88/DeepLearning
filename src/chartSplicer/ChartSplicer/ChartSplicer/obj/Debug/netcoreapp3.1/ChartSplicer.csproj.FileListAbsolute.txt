@@ -1,0 +1,15 @@
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\bin\Debug\netcoreapp3.1\ChartSplicer.exe
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\bin\Debug\netcoreapp3.1\ChartSplicer.deps.json
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\bin\Debug\netcoreapp3.1\ChartSplicer.runtimeconfig.json
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\bin\Debug\netcoreapp3.1\ChartSplicer.runtimeconfig.dev.json
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\bin\Debug\netcoreapp3.1\ChartSplicer.dll
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\bin\Debug\netcoreapp3.1\ChartSplicer.pdb
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\obj\Debug\netcoreapp3.1\ChartSplicer.csprojAssemblyReference.cache
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\obj\Debug\netcoreapp3.1\ChartSplicer.AssemblyInfoInputs.cache
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\obj\Debug\netcoreapp3.1\ChartSplicer.AssemblyInfo.cs
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\obj\Debug\netcoreapp3.1\ChartSplicer.csproj.CoreCompileInputs.cache
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\obj\Debug\netcoreapp3.1\ChartSplicer.dll
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\obj\Debug\netcoreapp3.1\ChartSplicer.pdb
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\obj\Debug\netcoreapp3.1\ChartSplicer.genruntimeconfig.cache
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
+C:\repos\DeepLearning\src\chartSplicer\ChartSplicer\ChartSplicer\obj\Debug\netcoreapp3.1\ChartSplicer.csproj.CopyComplete
