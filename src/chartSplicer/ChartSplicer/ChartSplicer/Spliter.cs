@@ -10,7 +10,7 @@ namespace ChartSplicer
 {
     class Spliter
     {
-        public void SplitFile(string file, int resolutionMin, int intervalMin, int predictionMin)
+        public void SplitFile(string file, int resolutionMin, int spliceStrade, int intervalMin, int predictionMin)
         {
             string trainingFolder = "data/training";
             string testFolder = "data/test";
@@ -31,18 +31,18 @@ namespace ChartSplicer
             List<Trade> validation = trades.GetRange(validationStart, validationCount);
 
             Console.WriteLine("Splitting training data");
-            Split(resolutionMin, intervalMin, predictionMin, training, trainingFolder);
+            Split(resolutionMin, spliceStrade, intervalMin, predictionMin, training, trainingFolder);
             Console.WriteLine("Splitting test data");
-            Split(resolutionMin, intervalMin, predictionMin, test, testFolder);
+            Split(resolutionMin, spliceStrade, intervalMin, predictionMin, test, testFolder);
             Console.WriteLine("Splitting validation data");
-            Split(resolutionMin, intervalMin, predictionMin, validation, validationFolder);
+            Split(resolutionMin, spliceStrade, intervalMin, predictionMin, validation, validationFolder);
         }
 
-        private static void Split(int resolutionMin, int intervalMin, int predictionMin, List<Trade> data, string folder)
+        private static void Split(int resolutionMin, int stride, int intervalMin, int predictionMin, List<Trade> data, string folder)
         {
             List<TradeSplit> splits = new List<TradeSplit>();
 
-            for (int i = 0; i < data.Count; i++)
+            for (int i = 0; i < data.Count; i += stride)
             {
                 List<double> prices = new List<double>();
                 int endIndex = i + intervalMin / resolutionMin;
