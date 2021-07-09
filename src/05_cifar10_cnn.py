@@ -222,6 +222,8 @@ class ImageClassificationBase(nn.Module):
     def training_step(self, batch):
         images, labels = batch 
         out = self(images)                  # Generate predictions
+        print(out.shape)
+        print(labels.shape)
         loss = F.cross_entropy(out, labels) # Calculate loss
         return loss
     

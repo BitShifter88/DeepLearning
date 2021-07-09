@@ -11,6 +11,10 @@ from torchvision.transforms import ToTensor
 from torchvision.utils import make_grid
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data import random_split
+
+from tqdm import tqdm
+from torch.autograd import Variable
+from model.multi_scale_ori import *
 # %matplotlib inline
 
 chartTest = ChartLoader("data/test")
@@ -29,9 +33,16 @@ val_size = 10000
 
 batch_size=128
 
+input_size = 2879
+hidden_size = 32 # you can change this
+num_classes = 3
+
 testLoader = DataLoader(chartTest, batch_size, shuffle=True, num_workers=0, pin_memory=True)
 trainingLoader = DataLoader(chartTraining, batch_size, shuffle=True, num_workers=0, pin_memory=True)
 validationLoader =DataLoader(chartValidation, batch_size, shuffle=True, num_workers=0, pin_memory=True)
+
+
+
 
 
 class MnistModel(nn.Module):
@@ -89,20 +100,25 @@ class MnistModel(nn.Module):
 
         # Get predictions using output layer
         out = self.linear4(out)
+        #out = F.softmax(out)
         return out
     
     def training_step(self, batch):
         images, labels = batch 
         out = self(images)                  # Generate predictions
-        loss = F.mse_loss(out, labels) # Calculate loss
+        loss = F.cross_entropy(out, labels) # Calculate loss
         return loss
     
     def validation_step(self, batch):
         images, labels = batch 
         #print(images.shape)
         #print(images)
-        out = self(images)                    # Generate predictions
-        loss = F.mse_loss(out, labels)   # Calculate loss
+        out = self(images)    
+        #out = torch.squeeze(labels)
+        
+        #print(out.shape)
+        #print(labels.shape)                # Generate predictions
+        loss = F.cross_entropy(out, labels)   # Calculate loss
         acc = accuracy(out, labels)           # Calculate accuracy
         return {'val_loss': loss, 'val_acc': acc}
         
@@ -119,28 +135,28 @@ class MnistModel(nn.Module):
 """We also need to define an `accuracy` function which calculates the accuracy of the model's prediction on an batch of inputs. It's used in `validation_step` above."""
 
 def accuracy(outputs, labels):
-    outputsF = torch.flatten(outputs)
-    labelsF = torch.flatten(labels)
-    diff = outputsF - labelsF
-    #_, preds = torch.max(outputs, dim=1)
-    # diff = torch.subtract(flat - labelsF)
-    # torch.set_printoptions(edgeitems=20)
-    # print(diff)
-    # print(diff.size)
-    # print(diff.shape)
-    diff = torch.abs(diff)
-    sum = torch.sum(diff)
-    length = len(outputsF)
-    avg = sum.item() / length 
-    #value = torch.sum(  torch.abs(outputsF - labels)).item() / len(outputsF)
-    #result = torch.tensor(value)
-    return torch.tensor(avg)
+    _, preds = torch.max(outputs, dim=1)
+    return torch.tensor(torch.sum(preds == labels).item() / len(preds))
+
+    # outputsF = torch.flatten(outputs)
+    # labelsF = torch.flatten(labels)
+    # diff = outputsF - labelsF
+    # #_, preds = torch.max(outputs, dim=1)
+    # # diff = torch.subtract(flat - labelsF)
+    # # torch.set_printoptions(edgeitems=20)
+    # # print(diff)
+    # # print(diff.size)
+    # # print(diff.shape)
+    # diff = torch.abs(diff)
+    # sum = torch.sum(diff)
+    # length = len(outputsF)
+    # avg = sum.item() / length 
+    # #value = torch.sum(  torch.abs(outputsF - labels)).item() / len(outputsF)
+    # #result = torch.tensor(value)
+    
+    # return torch.tensor(avg)
 
 """We'll create a model that contains a hidden layer with 32 activations."""
-
-input_size = 2016
-hidden_size = 32 # you can change this
-num_classes = 1
 
 model = MnistModel(input_size, hidden_size=32, out_size=num_classes)
 
@@ -164,6 +180,9 @@ torch.cuda.is_available()
 """Let's define a helper function to ensure that our code uses the GPU if available and defaults to using the CPU if it isn't. """
 
 def get_default_device():
+    return torch.device('cpu')
+
+    #return torch.device('cpu')
     #return torch.device('cpu')
     """Pick GPU if available, else CPU"""
     if torch.cuda.is_available():
@@ -257,17 +276,134 @@ print(result)
 
 """Let's see how the model performs on the validation set with the initial set of weights and biases."""
 
+
+
+
+
+
+msresnet = MSResNet(input_channel=1, layers=[1, 1, 1, 1], num_classes=2)
+msresnet = msresnet.cpu()
+
+criterion = nn.CrossEntropyLoss(size_average=False).cpu()
+
+optimizer = torch.optim.Adam(msresnet.parameters(), lr=0.005)
+scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50, 100, 150, 200, 250, 300], gamma=0.1)
+
+num_epochs = 20
+
+train_loss = np.zeros([num_epochs, 1])
+test_loss = np.zeros([num_epochs, 1])
+train_acc = np.zeros([num_epochs, 1])
+test_acc = np.zeros([num_epochs, 1])
+num_train_instances = len(trainingLoader)
+num_test_instances = len(testLoader)
+
+for epoch in range(num_epochs):
+    print('Epoch:', epoch)
+    msresnet.train()
+    scheduler.step()
+    # for i, (samples, labels) in enumerate(train_data_loader):
+    loss_x = 0
+    for (samples, labels) in tqdm(trainingLoader):
+        samplesV = Variable(samples.cpu())
+        labels = labels.squeeze()
+        labelsV = Variable(labels.cpu())
+
+        # Forward + Backward + Optimize
+        optimizer.zero_grad()
+        samplesV = torch.unsqueeze(samplesV, 2)
+        samplesV = torch.movedim(samplesV, 2,1)
+        predict_label = msresnet(samplesV)
+
+        loss = criterion(predict_label[0], labelsV)
+
+        loss_x += loss.item()
+
+        loss.backward()
+        optimizer.step()
+
+    train_loss[epoch] = loss_x / num_train_instances
+
+    msresnet.eval()
+    # loss_x = 0
+    correct_train = 0
+    for i, (samples, labels) in enumerate(trainingLoader):
+        with torch.no_grad():
+            samplesV = Variable(samples.cpu())
+            labels = labels.squeeze()
+            labelsV = Variable(labels.cpu())
+            # labelsV = labelsV.view(-1)
+
+            predict_label = msresnet(samplesV)
+            prediction = predict_label[0].data.max(1)[1]
+            correct_train += prediction.eq(labelsV.data.long()).sum()
+
+            loss = criterion(predict_label[0], labelsV)
+            # loss_x += loss.item()
+
+    print("Training accuracy:", (100*float(correct_train)/num_train_instances))
+
+    # train_loss[epoch] = loss_x / num_train_instances
+    train_acc[epoch] = 100*float(correct_train)/num_train_instances
+
+    trainacc = str(100*float(correct_train)/num_train_instances)[0:6]
+
+
+    loss_x = 0
+    correct_test = 0
+    for i, (samples, labels) in enumerate(testLoader):
+        with torch.no_grad():
+            samplesV = Variable(samples.cpu())
+            labels = labels.squeeze()
+            labelsV = Variable(labels.cpu())
+            # labelsV = labelsV.view(-1)
+
+        predict_label = msresnet(samplesV)
+        prediction = predict_label[0].data.max(1)[1]
+        correct_test += prediction.eq(labelsV.data.long()).sum()
+
+        loss = criterion(predict_label[0], labelsV)
+        loss_x += loss.item()
+
+    print("Test accuracy:", (100 * float(correct_test) / num_test_instances))
+
+    test_loss[epoch] = loss_x / num_test_instances
+    test_acc[epoch] = 100 * float(correct_test) / num_test_instances
+
+    testacc = str(100 * float(correct_test) / num_test_instances)[0:6]
+
+    if epoch == 0:
+        temp_test = correct_test
+        temp_train = correct_train
+    elif correct_test>temp_test:
+        torch.save(msresnet, 'weights/changingResnet/ChaningSpeed_Train' + trainacc + 'Test' + testacc + '.pkl')
+        temp_test = correct_test
+        temp_train = correct_train
+
+
+
+
+
+
+
+
+
+
+
+
 history = [evaluate(model, validationLoader)]
 history
+
 
 """The initial accuracy is around 10%, as one might expect from a randomly initialized model (since it has a 1 in 10 chance of getting a label right by guessing randomly).
 
 Let's train the model for five epochs and look at the results. We can use a relatively high learning rate of 0.5.
 """
 
-history += fit(15, 0.000001, model, trainingLoader, validationLoader)
-history += fit(5, 0.000001, model, trainingLoader, validationLoader)
 history += fit(10, 0.0000001, model, trainingLoader, validationLoader)
+history += fit(10,  0.0000001, model, trainingLoader, validationLoader)
+history += fit(10, 0.00000001, model, trainingLoader, validationLoader)
+
 
 
 #history += fit(5, 0.01, model, trainingLoader, validationLoader)
@@ -278,3 +414,38 @@ print(torch.seed())
 
 result = evaluate(model, testLoader)
 print(result)
+
+successCount = 0
+failCount = 0
+for x in range(1000):
+    data, p = chartTest[x]
+    #data = torch.unsqueeze(data, 0)
+    data = to_device(data, get_default_device())
+    pp = model(data)
+    v1 = pp.cpu().detach().numpy()[0]
+    v2 = pp.cpu().detach().numpy()[1]
+    #v3 = pp.cpu().detach().numpy()[2]
+
+    max = torch.max(torch.tensor([v1, v2]))
+    #final = 0;
+
+    #if (v2 > v1 and v2 > v3):
+    #    final = 1
+    #if (v3 > v1 and v3 > v2):
+    #    final = 2
+
+    if (pp.item() < 0 and p.item() < 0):
+        successCount += 1
+    elif (pp.item() > 0 and p.item() > 0):
+        successCount += 1
+    else:
+        failCount += 1
+
+
+    #if (v1 > v2):
+    #    up = False
+
+    print(str(pp.item()) + " - " + str(p.item()))
+    #print(p)
+
+print(str(successCount) + " - " + str(failCount))

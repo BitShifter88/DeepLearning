@@ -23,11 +23,11 @@ class ChartLoader(Dataset):
         return len(self.data)
     def __getitem__(self, index):
         data = self.data[index]
-        prices = data['Prices']
-        prediction = data["Prediction"]
-        tensor = torch.tensor(prices)
-        predictionTensor = torch.tensor([prediction])
-        return (tensor, predictionTensor)
+        prices = data[0]
+        prediction = data[1]
+        #tensor = torch.tensor(prices)
+        #predictionTensor = torch.tensor([prediction])
+        return (prices, prediction)
 
     def LoadData(self):
         #counter = 0
@@ -35,7 +35,11 @@ class ChartLoader(Dataset):
             with open(os.path.join(self.dir, filename)) as f:
                 jsonData = json.load(f)
                 for item in jsonData:
-                    self.data.append(item)
+                    upInt = int(item["Up"])
+                    prediction = item["Prediction"]
+                    #print(upInt)
+                    
+                    self.data.append( (torch.tensor(item['Prices']), torch.tensor(upInt)) )
                 # counter += 1
                 # if (counter == 100):
                 #     break

@@ -9,11 +9,11 @@ namespace ChartSplicer
         {
 
             Spliter spliter = new Spliter();
-            spliter.SplitFile(".krakenUSD.csv",
+            spliter.SplitFile("krakenUSD.csv",
                 10,
                 6,
-                60 * 24 * 14,
-                24 * 60 * 3);
+                60 * 24 * 20,
+                24 * 60 * 1);
         }
     }
 }

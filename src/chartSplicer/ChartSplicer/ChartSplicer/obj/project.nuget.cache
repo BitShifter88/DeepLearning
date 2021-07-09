@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "TOWEslZYWCxaroZfJw80j4/yCxqt60JTPkrtzuZAhbN00OVOSHvJUtx8CCEHIW+j0I4GxZJhJjwh0r1DJJvWGg==",
+  "dgSpecHash": "2M/hZ/66Z1yrcyvla499I977EwXFfroVJp/24ZnkH3I0nPWaYIa1hZdK4whWNuEVrylZLd0xR2sFgjOkz1emwg==",
   "success": true,
-  "projectFilePath": "C:\\repos\\DeepLearning\\src\\chartSplicer\\ChartSplicer\\ChartSplicer\\ChartSplicer.csproj",
+  "projectFilePath": "/home/sp/repos/DeepLearning/src/chartSplicer/ChartSplicer/ChartSplicer/ChartSplicer.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\SP\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512"
+    "/home/sp/.nuget/packages/newtonsoft.json/13.0.1/newtonsoft.json.13.0.1.nupkg.sha512"
   ],
   "logs": []
 }
